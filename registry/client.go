@@ -253,6 +253,10 @@ func (c *Client) CountTags(interval uint8) {
 			}
 		}
 		c.logger.Info("Tags calculation complete.")
+		//Refresh cache once.
+		if interval == 0 {
+			break
+		}
 		time.Sleep(time.Duration(interval) * time.Minute)
 	}
 }

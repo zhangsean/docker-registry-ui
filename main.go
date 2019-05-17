@@ -12,10 +12,10 @@ import (
 	"github.com/CloudyKit/jet"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/quiq/docker-registry-ui/events"
-	"github.com/quiq/docker-registry-ui/registry"
 	"github.com/robfig/cron"
 	"github.com/tidwall/gjson"
+	"github.com/zhangsean/docker-registry-ui/events"
+	"github.com/zhangsean/docker-registry-ui/registry"
 	"gopkg.in/yaml.v2"
 )
 
@@ -163,6 +163,10 @@ func (a *apiClient) viewRepositories(c echo.Context) error {
 	namespace := c.Param("namespace")
 	if namespace == "" {
 		namespace = "library"
+	}
+	useCache := c.QueryParam("useCache")
+	if useCache == "false" {
+		a.client.CountTags(0)
 	}
 
 	repos, _ := a.client.Repositories(true)[namespace]

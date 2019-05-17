@@ -7,6 +7,13 @@
         <title>Docker Registry UI</title>
         <link rel="stylesheet" type="text/css" href="{{ basePath }}/static/datatables.min.css"/>
         <script type="text/javascript" src="{{ basePath }}/static/datatables.min.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $('#refreshCache').on('click', function (e) {
+                    window.location = window.location.pathname + "?useCache=false";
+                });
+            });
+        </script>
         {{yield head()}}
     </head>
     <body>
@@ -16,6 +23,7 @@
             </div>
             <div style="float: right">
                 <h4><a href="{{ basePath }}/events">Event Log</a></h4>
+                <h4><a href="#" id="refreshCache">Refresh Cache</a></h4>
             </div>
             <div style="clear: both"></div>
 
