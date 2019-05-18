@@ -12,6 +12,9 @@
                 $('#refreshCache').on('click', function (e) {
                     window.location = window.location.pathname + "?useCache=false";
                 });
+                $('#garbageCollect').on('click', function (e) {
+                    window.location = "{{ basePath }}/garbageCollect";
+                });
             });
         </script>
         {{yield head()}}
@@ -22,8 +25,9 @@
                 <h2><a href="{{ basePath }}/" style="text-decoration: none">Docker Registry UI</a></h2>
             </div>
             <div style="float: right">
-                <h4><a href="{{ basePath }}/events">Event Log</a></h4>
-                <h4><a href="#" id="refreshCache">Refresh Cache</a></h4>
+                <h5><a href="{{ basePath }}/events">Event Log</a></h5>
+                <h5><a href="#" id="refreshCache">Refresh Cache</a></h5>
+                <h5><a href="#" id="garbageCollect">Garbage Collect</a></h5>
             </div>
             <div style="clear: both"></div>
 

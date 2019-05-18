@@ -1,0 +1,26 @@
+{{extends "base.html"}}
+
+{{block head()}}
+<script type="text/javascript">
+    $(function(){
+        $("#stdout").html($("#stdout").html().replace(/\n/g, '<br>'));
+    });
+</script>
+{{end}}
+
+{{block body()}}
+<ol class="breadcrumb">
+    <li><a href="{{ basePath }}/">{{ registryHost }}</a></li>
+</ol>
+<table class="table table-striped table-bordered">
+    <thead style="background-color:#ddd">
+        <tr>
+            <th colspan="2">Registry Garbage Collect Details</th>
+        </tr>
+    </thead>
+    <tr>
+        <td id="stdout">{{ stdout }}</td>
+    </tr>
+</table>
+
+{{end}}

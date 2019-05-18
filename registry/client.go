@@ -1,8 +1,10 @@
 package registry
 
 import (
+	"bytes"
 	"crypto/tls"
 	"fmt"
+	"os/exec"
 	"regexp"
 	"sort"
 	"strings"
@@ -265,4 +267,19 @@ func (c *Client) CountTags(interval uint8) {
 func (c *Client) DeleteTag(repo, tag string) {
 	scope := fmt.Sprintf("repository:%s:*", repo)
 	c.callRegistry(fmt.Sprintf("/v2/%s/manifests/%s", repo, tag), scope, 2, true)
+}
+
+// GarbageCollect deletes layers not referenced by any manifests to save disk space.
+func (c *Client) GarbageCollect() string {
+	c.logger.Info("Garbage Collecting...")
+	cmd := exec.Command("/bin/registry", "garbage-collect", "/etc/docker/registry/config.yml")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		c.logger.Error("Garbage Collect finished with error: ", err)
+	} else {
+		c.logger.Info("Garbage Collect finished")
+	}
+	return out.String()
 }

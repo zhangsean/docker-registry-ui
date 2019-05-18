@@ -146,6 +146,7 @@ func main() {
 	e.GET(a.config.BasePath+"/:namespace/:repo/:tag", a.viewTagInfo)
 	e.GET(a.config.BasePath+"/:namespace/:repo/:tag/delete", a.deleteTag)
 	e.GET(a.config.BasePath+"/events", a.viewLog)
+	e.GET(a.config.BasePath+"/garbageCollect", a.garbageCollect)
 
 	// Protected event listener.
 	p := e.Group(a.config.BasePath + "/api")
@@ -306,4 +307,12 @@ func (a *apiClient) receiveEvents(c echo.Context) error {
 // purgeOldTags purges old tags.
 func (a *apiClient) purgeOldTags(dryRun bool) {
 	registry.PurgeOldTags(a.client, dryRun, a.config.PurgeTagsKeepDays, a.config.PurgeTagsKeepCount)
+}
+
+// garbageCollect deletes layers not referenced by any manifests to save disk space.
+func (a *apiClient) garbageCollect(c echo.Context) error {
+	stdout := a.client.GarbageCollect()
+	data := jet.VarMap{}
+	data.Set("stdout", stdout)
+	return c.Render(http.StatusOK, "gc.html", data)
 }
