@@ -272,7 +272,7 @@ func (c *Client) DeleteTag(repo, tag string) {
 // GarbageCollect deletes layers not referenced by any manifests to save disk space.
 func (c *Client) GarbageCollect() string {
 	c.logger.Info("Garbage Collecting...")
-	cmd := exec.Command("/bin/registry", "garbage-collect", "/etc/docker/registry/config.yml")
+	cmd := exec.Command("/bin/registry", "garbage-collect", "-m", "/etc/docker/registry/config.yml")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()
