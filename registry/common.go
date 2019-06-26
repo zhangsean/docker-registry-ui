@@ -1,7 +1,10 @@
 package registry
 
 import (
+	"bytes"
 	"fmt"
+	"os"
+	"os/exec"
 	"reflect"
 	"sort"
 
@@ -49,6 +52,30 @@ func ItemInSlice(item string, slice []string) bool {
 		if i == item {
 			return true
 		}
+	}
+	return false
+}
+
+// RunCommand run command in system
+func RunCommand(command string, arg ...string) (string, error) {
+	cmd := exec.Command(command, arg...)
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
+	err := cmd.Run()
+	if err != nil {
+		return "Run command finished with error: ", err
+	}
+	return stdout.String(), nil
+}
+
+// PathExists if a path is exists.
+func PathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
 	}
 	return false
 }

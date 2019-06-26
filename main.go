@@ -143,6 +143,7 @@ func main() {
 	e.GET(a.config.BasePath+"/", a.viewRepositories)
 	e.GET(a.config.BasePath+"/:namespace", a.viewRepositories)
 	e.GET(a.config.BasePath+"/:namespace/:repo", a.viewTags)
+	e.GET(a.config.BasePath+"/:namespace/:repo/delete", a.deleteRepo)
 	e.GET(a.config.BasePath+"/:namespace/:repo/:tag", a.viewTagInfo)
 	e.GET(a.config.BasePath+"/:namespace/:repo/:tag/delete", a.deleteTag)
 	e.GET(a.config.BasePath+"/events", a.viewLog)
@@ -176,6 +177,8 @@ func (a *apiClient) viewRepositories(c echo.Context) error {
 	data.Set("namespaces", a.client.Namespaces())
 	data.Set("repos", repos)
 	data.Set("tagCounts", a.client.TagCounts())
+	deleteAllowed := a.checkDeletePermission(c.Request().Header.Get("X-WEBAUTH-USER"))
+	data.Set("deleteAllowed", deleteAllowed)
 
 	return c.Render(http.StatusOK, "repositories.html", data)
 }
@@ -258,6 +261,21 @@ func (a *apiClient) viewTagInfo(c echo.Context) error {
 	data.Set("layersV1", layersV1)
 
 	return c.Render(http.StatusOK, "tag_info.html", data)
+}
+
+func (a *apiClient) deleteRepo(c echo.Context) error {
+	namespace := c.Param("namespace")
+	repo := c.Param("repo")
+	repoPath := repo
+	if namespace != "library" {
+		repoPath = fmt.Sprintf("%s/%s", namespace, repo)
+	}
+
+	if a.checkDeletePermission(c.Request().Header.Get("X-WEBAUTH-USER")) {
+		a.client.DeleteRepo(repoPath)
+	}
+
+	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("%s/%s?useCache=false", a.config.BasePath, namespace))
 }
 
 func (a *apiClient) deleteTag(c echo.Context) error {

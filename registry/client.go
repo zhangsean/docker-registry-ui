@@ -1,10 +1,8 @@
 package registry
 
 import (
-	"bytes"
 	"crypto/tls"
 	"fmt"
-	"os/exec"
 	"regexp"
 	"sort"
 	"strings"
@@ -213,6 +211,34 @@ func (c *Client) Tags(repo string) []string {
 	return tags
 }
 
+// DeleteRepo delete repo.
+func (c *Client) DeleteRepo(repo string) {
+	scope := fmt.Sprintf("repository:%s:*", repo)
+	data, _ := c.callRegistry(fmt.Sprintf("/v2/%s/tags/list", repo), scope, 2, false)
+	for _, tag := range gjson.Get(data, "tags").Array() {
+		c.callRegistry(fmt.Sprintf("/v2/%s/manifests/%s", repo, tag.String()), scope, 2, true)
+	}
+
+	repoBase := "/var/lib/registry/docker/registry/v2/repositories/"
+	repoPath := ""
+	if PathExists(repoBase + repo) {
+		repoPath = repoBase + repo
+	} else if PathExists(repoBase + strings.Replace(repo, "library/", "", 1)) {
+		repoPath = repoBase + strings.Replace(repo, "library/", "", 1)
+	} else if PathExists(repoBase + "library/" + repo) {
+		repoPath = repoBase + "library/" + repo
+	} else {
+		c.logger.Error("Repo directory does't exist: ", repo)
+	}
+
+	_, err := RunCommand("/bin/rm", "-rf", repoPath)
+	if err != nil {
+		c.logger.Error("Remove repo finished with error: ", err.Error)
+	} else {
+		c.logger.Info("Remove repo successfully: ", repo)
+	}
+}
+
 // TagInfo get image info for the repo tag.
 func (c *Client) TagInfo(repo, tag string, v1only bool) (rsha256, rinfoV1, rinfoV2 string) {
 	scope := fmt.Sprintf("repository:%s:*", repo)
@@ -272,14 +298,11 @@ func (c *Client) DeleteTag(repo, tag string) {
 // GarbageCollect deletes layers not referenced by any manifests to save disk space.
 func (c *Client) GarbageCollect() string {
 	c.logger.Info("Garbage Collecting...")
-	cmd := exec.Command("/bin/registry", "garbage-collect", "-m", "/etc/docker/registry/config.yml")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
+	stdout, err := RunCommand("/bin/registry", "garbage-collect", "-m", "/etc/docker/registry/config.yml")
 	if err != nil {
 		c.logger.Error("Garbage Collect finished with error: ", err)
 	} else {
 		c.logger.Info("Garbage Collect finished")
 	}
-	return out.String()
+	return stdout
 }
